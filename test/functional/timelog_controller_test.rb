@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Redmine - project management software
-# Copyright (C) 2006-2015  Jean-Philippe Lang
+# Copyright (C) 2006-2016  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -95,6 +95,13 @@ class TimelogControllerTest < ActionController::TestCase
     assert_select 'option', :text => 'Inactive Activity', :count => 0
   end
 
+  def test_post_new_as_js_should_update_activity_options
+    @request.session[:user_id] = 3
+    post :new, :time_entry => {:project_id => 1}, :format => 'js'
+    assert_response :success
+    assert_include '#time_entry_activity_id', response.body
+  end
+
   def test_get_edit_existing_time
     @request.session[:user_id] = 2
     get :edit, :id => 2, :project_id => nil
@@ -106,7 +113,7 @@ class TimelogControllerTest < ActionController::TestCase
   def test_get_edit_with_an_existing_time_entry_with_inactive_activity
     te = TimeEntry.find(1)
     te.activity = TimeEntryActivity.find_by_name("Inactive Activity")
-    te.save!
+    te.save!(:validate => false)
 
     @request.session[:user_id] = 1
     get :edit, :project_id => 1, :id => 1
@@ -160,6 +167,73 @@ class TimelogControllerTest < ActionController::TestCase
     assert_equal 11, t.activity_id
     assert_equal 7.3, t.hours
     assert_equal 3, t.user_id
+  end
+
+  def test_create_on_project_with_time_tracking_disabled_should_fail
+    Project.find(1).disable_module! :time_tracking
+
+    @request.session[:user_id] = 2
+    assert_no_difference 'TimeEntry.count' do
+      post :create, :time_entry => {
+        :project_id => '1', :issue_id => '',
+        :activity_id => '11', :spent_on => '2008-03-14', :hours => '7.3'
+      }
+    end
+  end
+
+  def test_create_on_project_without_permission_should_fail
+    Role.find(1).remove_permission! :log_time
+
+    @request.session[:user_id] = 2
+    assert_no_difference 'TimeEntry.count' do
+      post :create, :time_entry => {
+        :project_id => '1', :issue_id => '',
+        :activity_id => '11', :spent_on => '2008-03-14', :hours => '7.3'
+      }
+    end
+  end
+
+  def test_create_on_issue_in_project_with_time_tracking_disabled_should_fail
+    Project.find(1).disable_module! :time_tracking
+
+    @request.session[:user_id] = 2
+    assert_no_difference 'TimeEntry.count' do
+      post :create, :time_entry => {
+        :project_id => '', :issue_id => '1',
+        :activity_id => '11', :spent_on => '2008-03-14', :hours => '7.3'
+      }
+      assert_select_error /Issue is invalid/
+    end
+  end
+
+  def test_create_on_issue_in_project_without_permission_should_fail
+    Role.find(1).remove_permission! :log_time
+
+    @request.session[:user_id] = 2
+    assert_no_difference 'TimeEntry.count' do
+      post :create, :time_entry => {
+        :project_id => '', :issue_id => '1',
+        :activity_id => '11', :spent_on => '2008-03-14', :hours => '7.3'
+      }
+      assert_select_error /Issue is invalid/
+    end
+  end
+
+  def test_create_on_issue_that_is_not_visible_should_not_disclose_subject
+    issue = Issue.generate!(:subject => "issue_that_is_not_visible", :is_private => true)
+    assert !issue.visible?(User.find(3))
+
+    @request.session[:user_id] = 3
+    assert_no_difference 'TimeEntry.count' do
+      post :create, :time_entry => {
+        :project_id => '', :issue_id => issue.id.to_s,
+        :activity_id => '11', :spent_on => '2008-03-14', :hours => '7.3'
+      }
+    end
+    assert_select_error /Issue is invalid/
+    assert_select "input[name=?][value=?]", "time_entry[issue_id]", issue.id.to_s
+    assert_select "#time_entry_issue", 0
+    assert !response.body.include?('issue_that_is_not_visible')
   end
 
   def test_create_and_continue_at_project_level
@@ -375,6 +449,16 @@ class TimelogControllerTest < ActionController::TestCase
     assert_template 'bulk_edit'
   end
 
+  def test_bulk_edit_with_edit_own_time_entries_permission
+    @request.session[:user_id] = 2
+    Role.find_by_name('Manager').remove_permission! :edit_time_entries
+    Role.find_by_name('Manager').add_permission! :edit_own_time_entries
+    ids = (0..1).map {TimeEntry.generate!(:user => User.find(2)).id}
+
+    get :bulk_edit, :ids => ids
+    assert_response :success
+  end
+
   def test_bulk_update
     @request.session[:user_id] = 2
     # update time entry activity
@@ -413,6 +497,25 @@ class TimelogControllerTest < ActionController::TestCase
     assert user.allowed_to?(action, TimeEntry.find(1).project)
     assert ! user.allowed_to?(action, TimeEntry.find(5).project)
     post :bulk_update, :ids => [1, 5], :time_entry => { :activity_id => 9 }
+    assert_response 403
+  end
+
+  def test_bulk_update_with_edit_own_time_entries_permission
+    @request.session[:user_id] = 2
+    Role.find_by_name('Manager').remove_permission! :edit_time_entries
+    Role.find_by_name('Manager').add_permission! :edit_own_time_entries
+    ids = (0..1).map {TimeEntry.generate!(:user => User.find(2)).id}
+
+    post :bulk_update, :ids => ids, :time_entry => { :activity_id => 9 }
+    assert_response 302
+  end
+
+  def test_bulk_update_with_edit_own_time_entries_permissions_should_be_denied_for_time_entries_of_other_user
+    @request.session[:user_id] = 2
+    Role.find_by_name('Manager').remove_permission! :edit_time_entries
+    Role.find_by_name('Manager').add_permission! :edit_own_time_entries
+
+    post :bulk_update, :ids => [1, 2], :time_entry => { :activity_id => 9 }
     assert_response 403
   end
 

@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2015  Jean-Philippe Lang
+# Copyright (C) 2006-2016  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -146,7 +146,7 @@ class VersionsController < ApplicationController
   end
 
   def destroy
-    if @version.fixed_issues.empty?
+    if @version.deletable?
       @version.destroy
       respond_to do |format|
         format.html { redirect_back_or_default settings_project_path(@project, :tab => 'versions') }

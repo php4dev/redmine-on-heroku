@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2015  Jean-Philippe Lang
+# Copyright (C) 2006-2016  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -27,6 +27,8 @@ class UsersController < ApplicationController
   helper :custom_fields
   include CustomFieldsHelper
   helper :principal_memberships
+
+  require_sudo_mode :create, :update, :destroy
 
   def index
     sort_init 'login', 'asc'
@@ -141,7 +143,7 @@ class UsersController < ApplicationController
 
       if was_activated
         Mailer.account_activated(@user).deliver
-      elsif @user.active? && params[:send_information] && @user.password.present? && @user.auth_source_id.nil?
+      elsif @user.active? && params[:send_information] && @user.password.present? && @user.auth_source_id.nil? && @user != User.current
         Mailer.account_information(@user, @user.password).deliver
       end
 

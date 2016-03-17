@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2015  Jean-Philippe Lang
+# Copyright (C) 2006-2016  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -74,6 +74,36 @@ class RepositoryTest < ActiveSupport::TestCase
 
     project = Project.find(3)
     assert_equal repository, project.repository
+  end
+
+  def test_2_repositories_with_same_identifier_in_different_projects_should_be_valid
+    Repository::Subversion.create!(:project_id => 2, :identifier => 'foo', :url => 'file:///foo')
+    r = Repository::Subversion.new(:project_id => 3, :identifier => 'foo', :url => 'file:///bar')
+    assert r.save
+  end
+
+  def test_2_repositories_with_same_identifier_should_not_be_valid
+    Repository::Subversion.create!(:project_id => 3, :identifier => 'foo', :url => 'file:///foo')
+    r = Repository::Subversion.new(:project_id => 3, :identifier => 'foo', :url => 'file:///bar')
+    assert !r.save
+  end
+
+  def test_2_repositories_with_blank_identifier_should_not_be_valid
+    Repository::Subversion.create!(:project_id => 3, :identifier => '', :url => 'file:///foo')
+    r = Repository::Subversion.new(:project_id => 3, :identifier => '', :url => 'file:///bar')
+    assert !r.save
+  end
+
+  def test_2_repositories_with_blank_identifier_and_one_as_default_should_not_be_valid
+    Repository::Subversion.create!(:project_id => 3, :identifier => '', :url => 'file:///foo', :is_default => true)
+    r = Repository::Subversion.new(:project_id => 3, :identifier => '', :url => 'file:///bar')
+    assert !r.save
+  end
+
+  def test_2_repositories_with_blank_and_nil_identifier_should_not_be_valid
+    Repository::Subversion.create!(:project_id => 3, :identifier => nil, :url => 'file:///foo')
+    r = Repository::Subversion.new(:project_id => 3, :identifier => '', :url => 'file:///bar')
+    assert !r.save
   end
 
   def test_2_repositories_with_same_identifier_in_different_projects_should_be_valid

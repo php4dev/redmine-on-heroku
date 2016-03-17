@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2015  Jean-Philippe Lang
+# Copyright (C) 2006-2016  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -74,6 +74,14 @@ class ActivityTest < ActiveSupport::TestCase
     assert(events.size > 0)
     assert(events.size <= 10)
     assert_nil(events.detect {|e| e.event_author != user})
+  end
+
+  def test_journal_with_notes_and_changes_should_be_returned_once
+    f = Redmine::Activity::Fetcher.new(User.anonymous, :project => Project.find(1))
+    f.scope = ['issues']
+    events = f.events
+
+    assert_equal events, events.uniq
   end
 
   def test_files_activity

@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2015  Jean-Philippe Lang
+# Copyright (C) 2006-2016  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -234,6 +234,7 @@ private
   def find_time_entries
     @time_entries = TimeEntry.where(:id => params[:id] || params[:ids]).to_a
     raise ActiveRecord::RecordNotFound if @time_entries.empty?
+    raise Unauthorized unless @time_entries.all? {|t| t.editable_by?(User.current)}
     @projects = @time_entries.collect(&:project).compact.uniq
     @project = @projects.first if @projects.size == 1
   rescue ActiveRecord::RecordNotFound

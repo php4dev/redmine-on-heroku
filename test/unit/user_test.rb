@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2015  Jean-Philippe Lang
+# Copyright (C) 2006-2016  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -511,7 +511,7 @@ class UserTest < ActiveSupport::TestCase
 
   def test_name_format
     assert_equal 'John S.', @jsmith.name(:firstname_lastinitial)
-    assert_equal 'Smith, John', @jsmith.name(:lastname_coma_firstname)
+    assert_equal 'Smith, John', @jsmith.name(:lastname_comma_firstname)
     assert_equal 'J. Smith', @jsmith.name(:firstinitial_lastname)
     assert_equal 'J.-P. Lang', User.new(:firstname => 'Jean-Philippe', :lastname => 'Lang').name(:firstinitial_lastname)
   end
@@ -560,7 +560,7 @@ class UserTest < ActiveSupport::TestCase
   end
 
   def test_fields_for_order_statement_should_return_fields_according_user_format_setting
-    with_settings :user_format => 'lastname_coma_firstname' do
+    with_settings :user_format => 'lastname_comma_firstname' do
       assert_equal ['users.lastname', 'users.firstname', 'users.id'],
                    User.fields_for_order_statement
     end
@@ -905,6 +905,18 @@ class UserTest < ActiveSupport::TestCase
     Member.create!(:project => project, :principal => Group.anonymous, :role_ids => [1, 2])
     roles = User.anonymous.roles_for_project(project)
     assert_equal [], roles.map(&:name).sort
+  end
+
+  def test_roles_for_project_should_be_unique
+    m = Member.new(:user_id => 1, :project_id => 1)
+    m.member_roles.build(:role_id => 1)
+    m.member_roles.build(:role_id => 1)
+    m.save!
+
+    user = User.find(1)
+    project = Project.find(1)
+    assert_equal 1, user.roles_for_project(project).size
+    assert_equal [1], user.roles_for_project(project).map(&:id)
   end
 
   def test_projects_by_role_for_user_with_role

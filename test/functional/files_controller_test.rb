@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2015  Jean-Philippe Lang
+# Copyright (C) 2006-2016  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -106,4 +106,15 @@ class FilesControllerTest < ActionController::TestCase
     assert_equal Version.find(2), a.container
   end
 
+  def test_create_without_file
+    set_tmp_attachments_directory
+    @request.session[:user_id] = 2
+
+    assert_no_difference 'Attachment.count' do
+      post :create, :project_id => 1, :version_id => ''
+      assert_response 200
+      assert_template 'new'
+    end
+    assert_select 'div.error', 'File is invalid'
+  end
 end

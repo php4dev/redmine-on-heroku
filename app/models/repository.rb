@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2015  Jean-Philippe Lang
+# Copyright (C) 2006-2016  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -30,6 +30,7 @@ class Repository < ActiveRecord::Base
 
   serialize :extra_info
 
+  before_validation :normalize_identifier
   before_save :check_default
 
   # Raw SQL to delete changesets and changes in the database
@@ -469,6 +470,10 @@ class Repository < ActiveRecord::Base
     end
   end
 
+  def normalize_identifier
+    self.identifier = identifier.to_s.strip
+  end
+
   def check_default
     if !is_default? && set_as_default?
       self.is_default = true
@@ -501,9 +506,5 @@ class Repository < ActiveRecord::Base
     self.class.connection.delete("DELETE FROM #{ci} WHERE #{ci}.changeset_id IN (SELECT #{cs}.id FROM #{cs} WHERE #{cs}.repository_id = #{id})")
     self.class.connection.delete("DELETE FROM #{cp} WHERE #{cp}.changeset_id IN (SELECT #{cs}.id FROM #{cs} WHERE #{cs}.repository_id = #{id})")
     self.class.connection.delete("DELETE FROM #{cs} WHERE #{cs}.repository_id = #{id}")
-    clear_extra_info_of_changesets
-  end
-
-  def clear_extra_info_of_changesets
   end
 end

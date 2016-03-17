@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2015  Jean-Philippe Lang
+# Copyright (C) 2006-2016  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -32,7 +32,7 @@ class Group < Principal
 
   before_destroy :remove_references_before_destroy
 
-  scope :sorted, lambda { order(:type => :asc, :lastname => :desc) }
+  scope :sorted, lambda { order(:type => :asc, :lastname => :asc) }
   scope :named, lambda {|arg| where("LOWER(#{table_name}.lastname) = LOWER(?)", arg.to_s.strip)}
   scope :givable, lambda {where(:type => 'Group')}
 

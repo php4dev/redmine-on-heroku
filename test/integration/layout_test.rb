@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2015  Jean-Philippe Lang
+# Copyright (C) 2006-2016  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -80,6 +80,18 @@ class LayoutTest < Redmine::IntegrationTest
     with_settings :default_language => 'en' do
       get '/issues'
       assert_not_include "/javascripts/i18n/datepicker", response.body
+    end
+
+    with_settings :default_language => 'es' do
+      get '/issues'
+      assert_include "/javascripts/i18n/datepicker-es.js", response.body
+    end
+
+    with_settings :default_language => 'es-PA' do
+      get '/issues'
+      # There is not datepicker-es-PA.js
+      # https://github.com/jquery/jquery-ui/tree/1.11.4/ui/i18n
+      assert_not_include "/javascripts/i18n/datepicker-es.js", response.body
     end
 
     with_settings :default_language => 'zh' do

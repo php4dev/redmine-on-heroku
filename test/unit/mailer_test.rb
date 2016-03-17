@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2015  Jean-Philippe Lang
+# Copyright (C) 2006-2016  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -56,7 +56,7 @@ class MailerTest < ActiveSupport::TestCase
       # link to a referenced ticket
       assert_select 'a[href=?][title=?]',
                     'https://mydomain.foo/issues/1',
-                    "Cannot print recipes (New)",
+                    "Bug: Cannot print recipes (New)",
                     :text => '#1'
       # link to a changeset
       assert_select 'a[href=?][title=?]',
@@ -97,7 +97,7 @@ class MailerTest < ActiveSupport::TestCase
       # link to a referenced ticket
       assert_select 'a[href=?][title=?]',
                     'http://mydomain.foo/rdm/issues/1',
-                    "Cannot print recipes (New)",
+                    "Bug: Cannot print recipes (New)",
                     :text => '#1'
       # link to a changeset
       assert_select 'a[href=?][title=?]',
@@ -167,7 +167,7 @@ class MailerTest < ActiveSupport::TestCase
       # link to a referenced ticket
       assert_select 'a[href=?][title=?]',
                     'http://mydomain.foo/rdm/issues/1',
-                    "Cannot print recipes (New)",
+                    "Bug: Cannot print recipes (New)",
                     :text => '#1'
       # link to a changeset
       assert_select 'a[href=?][title=?]',
@@ -197,7 +197,7 @@ class MailerTest < ActiveSupport::TestCase
     Mailer.deliver_issue_add(issue)
     mail = last_email
     assert_not_nil mail
-    assert_equal 'OOF', mail.header['X-Auto-Response-Suppress'].to_s
+    assert_equal 'All', mail.header['X-Auto-Response-Suppress'].to_s
     assert_equal 'auto-generated', mail.header['Auto-Submitted'].to_s
     assert_equal '<redmine.example.net>', mail.header['List-Id'].to_s
   end
