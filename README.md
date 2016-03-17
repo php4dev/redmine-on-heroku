@@ -20,6 +20,8 @@ $ heroku run rake redmine:load_default_data
 $ heroku run rake redmine:plugins:migrate RAILS_ENV=production
 ```
 
+You can now log into your Redmine installation using the initial user account (username: `admin`,  password: `admin`).
+
 ## License
 
 Like [Redmine], this is open source and released under the terms of the [GNU General Public License v2 (GPL)](http://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
