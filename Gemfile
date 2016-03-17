@@ -71,12 +71,12 @@ require 'yaml'
 #       when 'mysql'
 #         gem "activerecord-jdbcmysql-adapter", :platforms => :jruby
 #       when /postgresql/
-        gem "pg", "~> 0.18.1", :platforms => [:mri, :mingw, :x64_mingw]
+#        gem "pg", "~> 0.18.1", :platforms => [:mri, :mingw, :x64_mingw]
 #         gem "activerecord-jdbcpostgresql-adapter", :platforms => :jruby
 #       when /sqlite3/
 #         gem "sqlite3", :platforms => [:mri, :mingw, :x64_mingw]
-        gem "jdbc-sqlite3", ">= 3.8.10.1", :platforms => :jruby
-        gem "activerecord-jdbcsqlite3-adapter", :platforms => :jruby
+#        gem "jdbc-sqlite3", ">= 3.8.10.1", :platforms => :jruby
+#        gem "activerecord-jdbcsqlite3-adapter", :platforms => :jruby
 #         gem "tiny_tds", "~> 0.6.2", :platforms => [:mri, :mingw, :x64_mingw]
 #         gem "activerecord-sqlserver-adapter", :platforms => [:mri, :mingw, :x64_mingw]
 #       else
@@ -92,7 +92,7 @@ require 'yaml'
 
 # Heroku
 group :production do
-  gem "pg"
+  gem "pg", "~> 0.18.1"
 end
 
 group :development do

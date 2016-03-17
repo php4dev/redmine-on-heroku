@@ -1,5 +1,5 @@
 
-# Redmine 3.0 on Heroku
+# Redmine 3.2 on Heroku
 
 <img src="https://cloud.githubusercontent.com/assets/296432/3865668/0fbd67c8-1fa3-11e4-9d4e-b33353725c60.png" width="75"/>
 
@@ -17,6 +17,7 @@ More details can be found in the doc directory or on the [official website](http
 $ heroku git:clone -a <YOUR-APP-NAME>
 $ cd <YOUR-APP-NAME>
 $ heroku run rake redmine:load_default_data
+$ heroku run rake redmine:plugins:migrate RAILS_ENV=production
 ```
 
 ## License
